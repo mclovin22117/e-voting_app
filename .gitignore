@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# some secret stuff I guess
+lib/services/blockchain_service.dart
+
