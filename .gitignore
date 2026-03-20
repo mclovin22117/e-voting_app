@@ -48,3 +48,4 @@ app.*.map.json
 # some secret stuff I guess
 lib/services/blockchain_service.dart
 
+lib/services/blockchain_service.dart
