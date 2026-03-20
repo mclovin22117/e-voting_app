@@ -86,7 +86,4 @@ This is an electronic voting system built using Ethereum and Solidity for the ba
 
 3. **View Results**
    - Visit the public website to view the election results and outcomes.
-
-## Contributing
-
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) before making a pull request.
+---
