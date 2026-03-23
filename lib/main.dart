@@ -1,8 +1,9 @@
-lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'services/blockchain_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
 
