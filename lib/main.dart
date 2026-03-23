@@ -1,34 +1,17 @@
-
 import 'package:flutter/material.dart';
-import 'services/blockchain_service.dart';
+import 'screens/home_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+void main() {
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final BlockchainService service = BlockchainService();
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: ScaffoldMessenger(
-        child: Center(
-          child: ElevatedButton(
-            onPressed: () async {
-              try {
-                await service.initialize();
-                await service.vote(1);
-                print("Vote sent");
-              } catch (e) {
-                print("Error casting vote: $e");
-              }
-            },
-            child: Text("Vote Candidate 1"),
-          ),
-        ),
-      ),
+    return const MaterialApp(
+      home: HomeScreen(),
     );
   }
 }
