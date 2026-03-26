@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/candidate.dart';
 import '../services/blockchain_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class _HomeScreenState
   final BlockchainService service =
       BlockchainService();
 
-  List candidates = [];
+  List<Candidate> candidates = [];
 
   @override
   void initState() {
@@ -24,33 +25,16 @@ class _HomeScreenState
   }
 
   Future<void> loadCandidates() async {
+    final loadedCandidates =
+        await service.getCandidates();
 
-    candidates.clear();
-
-    int count =
-        await service.getCandidatesCount();
-
-    for (int i = 1; i <= count; i++) {
-
-      var c =
-          await service.getCandidate(i);
-
-      candidates.add({
-        "id":
-            (c[0] as BigInt).toInt(),
-        "name":
-            c[1],
-        "votes":
-            (c[2] as BigInt).toInt(),
-      });
-    }
+    candidates = loadedCandidates;
 
     setState(() {});
   }
 
   Future<void> vote(int id) async {
-
-    await service.vote(id);
+    await service.castVote(id);
 
     await loadCandidates();
   }
@@ -101,12 +85,12 @@ class _HomeScreenState
 
                       title:
                           Text(
-                        c["name"],
+                        c.name,
                       ),
 
                       subtitle:
                           Text(
-                        "Votes: ${c["votes"]}",
+                        'Votes: ${c.voteCount}',
                       ),
 
                       trailing:
@@ -114,7 +98,7 @@ class _HomeScreenState
 
                         onPressed: () =>
                             vote(
-                          c["id"],
+                          c.id,
                         ),
 
                         child:
