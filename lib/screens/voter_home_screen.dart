@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../controllers/auth_controller.dart';
 import '../models/candidate.dart';
 import '../models/network_status.dart';
 import '../models/transaction_state.dart';
@@ -10,11 +11,13 @@ class VoterHomeScreen extends StatefulWidget {
   const VoterHomeScreen({
     super.key,
     required this.blockchainService,
+    required this.authController,
   });
 
   static const routeName = '/voter';
 
   final BlockchainService blockchainService;
+  final AuthController authController;
 
   @override
   State<VoterHomeScreen> createState() => _VoterHomeScreenState();

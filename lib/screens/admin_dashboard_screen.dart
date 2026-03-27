@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../config/app_config.dart';
+import '../controllers/auth_controller.dart';
 import '../models/network_status.dart';
 import '../models/transaction_state.dart';
 import '../models/voting_period.dart';
@@ -13,12 +14,14 @@ class AdminDashboardScreen extends StatefulWidget {
     super.key,
     required this.config,
     required this.blockchainService,
+    required this.authController,
   });
 
   static const routeName = '/admin';
 
   final AppConfig config;
   final BlockchainService blockchainService;
+  final AuthController authController;
 
   @override
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
