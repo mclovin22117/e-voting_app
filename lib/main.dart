@@ -30,7 +30,10 @@ class MyApp extends StatelessWidget {
         VoterHomeScreen.routeName: (context) =>
             VoterHomeScreen(blockchainService: blockchainService),
         AdminDashboardScreen.routeName: (context) =>
-            AdminDashboardScreen(config: config),
+            AdminDashboardScreen(
+              config: config,
+              blockchainService: blockchainService,
+            ),
       },
     );
   }
