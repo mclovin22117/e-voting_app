@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/candidate.dart';
+import '../models/network_status.dart';
+import '../models/transaction_state.dart';
 import '../services/blockchain_service.dart';
+import '../widgets/transaction_status_card.dart';
 
 class VoterHomeScreen extends StatefulWidget {
   const VoterHomeScreen({
@@ -20,25 +23,36 @@ class VoterHomeScreen extends StatefulWidget {
 class _VoterHomeScreenState extends State<VoterHomeScreen> {
   List<Candidate> _candidates = const [];
   bool _isLoading = true;
+  bool _isSubmittingVote = false;
   String? _error;
+  NetworkStatus? _networkStatus;
+  TransactionState _transactionState = const TransactionState.idle();
 
   @override
   void initState() {
     super.initState();
-    _loadCandidates();
+    _loadData();
   }
 
-  Future<void> _loadCandidates() async {
+  Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      final candidates = await widget.blockchainService.getCandidates();
+      final results = await Future.wait([
+        widget.blockchainService.getCandidates(),
+        widget.blockchainService.getNetworkStatus(),
+      ]);
+
+      final candidates = results[0] as List<Candidate>;
+      final networkStatus = results[1] as NetworkStatus;
+
       if (!mounted) return;
       setState(() {
         _candidates = candidates;
+        _networkStatus = networkStatus;
       });
     } catch (e) {
       if (!mounted) return;
@@ -54,6 +68,33 @@ class _VoterHomeScreenState extends State<VoterHomeScreen> {
     }
   }
 
+  Future<void> _vote(int candidateId) async {
+    setState(() {
+      _isSubmittingVote = true;
+      _transactionState = const TransactionState.pending();
+    });
+
+    try {
+      final txHash = await widget.blockchainService.castVote(candidateId);
+      if (!mounted) return;
+      setState(() {
+        _transactionState = TransactionState.success(txHash);
+      });
+      await _loadData();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _transactionState = TransactionState.error(e.toString());
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingVote = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,14 +102,34 @@ class _VoterHomeScreenState extends State<VoterHomeScreen> {
         title: const Text('Voter Dashboard'),
         actions: [
           IconButton(
-            onPressed: _loadCandidates,
+            onPressed: _loadData,
             icon: const Icon(Icons.refresh),
           ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: _buildBody(),
+        child: Column(
+          children: [
+            if (_networkStatus != null && !_networkStatus!.isMatch)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Text(
+                  'Network mismatch: expected chain ${_networkStatus!.expectedChainId}, '
+                  'connected chain ${_networkStatus!.currentChainId}.',
+                ),
+              ),
+            TransactionStatusCard(state: _transactionState),
+            Expanded(child: _buildBody()),
+          ],
+        ),
       ),
     );
   }
@@ -99,7 +160,11 @@ class _VoterHomeScreenState extends State<VoterHomeScreen> {
           child: ListTile(
             title: Text(candidate.name),
             subtitle: Text('Votes: ${candidate.voteCount}'),
-            trailing: const Icon(Icons.how_to_vote),
+            trailing: ElevatedButton.icon(
+              onPressed: _isSubmittingVote ? null : () => _vote(candidate.id),
+              icon: const Icon(Icons.how_to_vote),
+              label: const Text('Vote'),
+            ),
           ),
         );
       },
