@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../controllers/auth_controller.dart';
 import 'admin_dashboard_screen.dart';
+import 'register_screen.dart';
 import 'voter_home_screen.dart';
 
 class AuthScreen extends StatelessWidget {
@@ -124,30 +125,46 @@ class AuthScreen extends StatelessWidget {
             const SizedBox(height: 24),
             // Action buttons
             if (!authController.isAuthenticated)
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final connected = await authController.connectWallet();
-                  if (connected && context.mounted) {
-                    // Role-based navigation
-                    if (authController.canAccessAdmin()) {
-                      Navigator.of(context)
-                          .pushNamedAndRemoveUntil(
-                        AdminDashboardScreen.routeName,
-                        (route) => false,
-                      )
-                          .ignore();
-                    } else if (authController.canAccessVoter()) {
-                      Navigator.of(context)
-                          .pushNamedAndRemoveUntil(
-                        VoterHomeScreen.routeName,
-                        (route) => false,
-                      )
-                          .ignore();
-                    }
-                  }
-                },
-                icon: const Icon(Icons.wallet),
-                label: const Text('Connect Wallet'),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await authController.connectWalletOnly();
+                    },
+                    icon: const Icon(Icons.wallet),
+                    label: const Text('Connect Wallet'),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final loggedIn = await authController.loginWithWallet();
+                      if (loggedIn && context.mounted) {
+                        if (authController.canAccessAdmin()) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            AdminDashboardScreen.routeName,
+                            (route) => false,
+                          );
+                        } else if (authController.canAccessVoter()) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            VoterHomeScreen.routeName,
+                            (route) => false,
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.login),
+                    label: const Text('Login to Vote'),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(RegisterScreen.routeName);
+                    },
+                    icon: const Icon(Icons.app_registration),
+                    label: const Text('Go to Register'),
+                  ),
+                ],
               )
             else ...[
               ElevatedButton.icon(
@@ -180,6 +197,20 @@ class AuthScreen extends StatelessWidget {
                   icon: const Icon(Icons.admin_panel_settings),
                   label: const Text('Admin Access Denied'),
                 ),
+              if (authController.registrationPending) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    border: Border.all(color: Colors.amber.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Registration pending admin verification. You can login, but voting stays disabled until your wallet is registered on-chain.',
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () async {

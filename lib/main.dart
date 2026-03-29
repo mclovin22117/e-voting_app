@@ -4,7 +4,9 @@ import 'config/app_config.dart';
 import 'controllers/auth_controller.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/auth_screen.dart';
+import 'screens/register_screen.dart';
 import 'screens/voter_home_screen.dart';
+import 'services/backend_api_service.dart';
 import 'services/blockchain_service.dart';
 import 'services/session_storage_service.dart';
 import 'services/wallet_service.dart';
@@ -37,6 +39,7 @@ class _MyAppState extends State<MyApp> {
     _authController = AuthController(
       walletService: WalletService(blockchainService: _blockchainService),
       sessionStorage: SessionStorageService(),
+      backendApiService: BackendApiService(baseUrl: widget.config.backendUrl),
     );
     _authController.restoreSession();
   }
@@ -55,6 +58,9 @@ class _MyAppState extends State<MyApp> {
         AdminDashboardScreen.routeName: (context) => AdminDashboardScreen(
               config: widget.config,
               blockchainService: _blockchainService,
+              authController: _authController,
+            ),
+        RegisterScreen.routeName: (context) => RegisterScreen(
               authController: _authController,
             ),
       },
