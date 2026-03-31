@@ -28,7 +28,7 @@ class AuthScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Connect your wallet to participate in voting or manage elections.',
+              'Two-step verification: (1) Register with Voter ID + mobile OTP, then (2) connect MetaMask wallet and login.',
             ),
             const SizedBox(height: 24),
             // Connection status
@@ -128,12 +128,20 @@ class AuthScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(RegisterScreen.routeName);
+                    },
+                    icon: const Icon(Icons.app_registration),
+                    label: const Text('Step 1: Register (VID + OTP)'),
+                  ),
+                  const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () async {
                       await authController.connectWalletOnly();
                     },
                     icon: const Icon(Icons.wallet),
-                    label: const Text('Connect Wallet'),
+                    label: const Text('Step 2: Connect MetaMask Wallet'),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
@@ -155,14 +163,6 @@ class AuthScreen extends StatelessWidget {
                     },
                     icon: const Icon(Icons.login),
                     label: const Text('Login to Vote'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(RegisterScreen.routeName);
-                    },
-                    icon: const Icon(Icons.app_registration),
-                    label: const Text('Go to Register'),
                   ),
                 ],
               )
