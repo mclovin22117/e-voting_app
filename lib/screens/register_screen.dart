@@ -26,6 +26,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _vidController = TextEditingController();
   final _otpController = TextEditingController();
 
+  static const _demoOtp = '123456';
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -35,10 +37,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  Future<void> _sendOtp() async {
+  Future<void> _continueFromDummyOtpStep() async {
     final name = _nameController.text.trim();
     final mobile = _mobileController.text.trim();
     final vid = _vidController.text.trim();
+    final otp = _otpController.text.trim();
 
     if (name.isEmpty || mobile.isEmpty || vid.isEmpty) {
       setState(() {
@@ -47,84 +50,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    setState(() {
-      _busy = true;
-      _note = 'Sending OTP...';
-    });
-
-    try {
-      await widget.authController.backendApiService.initOtp(
-        name: name,
-        mobile: mobile,
-        vid: vid,
-      );
-
-      if (!mounted) return;
+    if (otp != _demoOtp) {
       setState(() {
-        _step = 2;
-        _note = 'OTP sent to your mobile.';
+        _note = 'Invalid OTP. For demo, use 123456.';
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _step = 2;
-        _note = 'OTP endpoint unavailable. For demo, use 123456.';
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _busy = false;
-        });
-      }
+      return;
     }
-  }
 
-  Future<void> _verifyOtp() async {
-    final vid = _vidController.text.trim();
-    final otp = _otpController.text.trim();
-
-    if (otp.isEmpty) {
+    if (mobile.isEmpty || vid.isEmpty) {
       setState(() {
-        _note = 'Enter OTP.';
+        _note = 'Mobile number and VID are required.';
       });
       return;
     }
 
     setState(() {
-      _busy = true;
-      _note = 'Verifying OTP...';
+      _step = 2;
+      _note = 'Step 1 complete (demo OTP verified). Proceed to MetaMask wallet connection.';
     });
-
-    try {
-      await widget.authController.backendApiService.verifyOtp(
-        vid: vid,
-        otp: otp,
-      );
-      if (!mounted) return;
-      setState(() {
-        _step = 3;
-        _note = 'Verified. Now connect and link your wallet.';
-      });
-    } catch (e) {
-      if (otp == '123456') {
-        if (!mounted) return;
-        setState(() {
-          _step = 3;
-          _note = 'Verified via demo fallback. Now connect and link your wallet.';
-        });
-      } else {
-        if (!mounted) return;
-        setState(() {
-          _note = 'OTP verification failed. Use 123456 for demo.';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _busy = false;
-        });
-      }
-    }
   }
 
   Future<void> _connectWallet() async {
@@ -185,7 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
       setState(() {
-        _step = 4;
+        _step = 3;
         _note = 'Registration successful. You can now login with your wallet.';
       });
     } catch (e) {
@@ -213,8 +156,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             if (_step == 1) ...[
               const Text(
-                'Step 1: Identity Information',
+                'Step 1: VID + Mobile + OTP (Demo)',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  border: Border.all(color: Colors.amber.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Demo mode: use OTP 123456.',
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -229,41 +184,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _vidController,
                 decoration: const InputDecoration(labelText: 'Voter ID (VID)'),
               ),
+              TextField(
+                controller: _otpController,
+                decoration: const InputDecoration(labelText: 'OTP (use 123456)'),
+              ),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: _busy ? null : _sendOtp,
-                child: const Text('Send OTP'),
+                onPressed: _busy ? null : _continueFromDummyOtpStep,
+                child: const Text('Continue to Step 2'),
               ),
             ],
             if (_step == 2) ...[
               const Text(
-                'Step 2: Verify OTP',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _otpController,
-                decoration: const InputDecoration(labelText: 'OTP'),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: _busy ? null : _verifyOtp,
-                child: const Text('Verify OTP'),
-              ),
-              TextButton(
-                onPressed: _busy
-                    ? null
-                    : () {
-                        setState(() {
-                          _step = 1;
-                        });
-                      },
-                child: const Text('Back'),
-              ),
-            ],
-            if (_step == 3) ...[
-              const Text(
-                'Step 3: Link MetaMask Wallet',
+                'Step 2: Link MetaMask Wallet',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -294,7 +227,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: const Text('Link Wallet'),
               ),
             ],
-            if (_step == 4) ...[
+            if (_step == 3) ...[
               const Text(
                 'Registration Complete',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

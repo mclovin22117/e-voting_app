@@ -28,7 +28,7 @@ class AuthScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Two-step verification: (1) Register with Voter ID + mobile OTP, then (2) connect MetaMask wallet and login.',
+              'Two-step verification: (1) Register with Voter ID + mobile + demo OTP (123456), then (2) connect MetaMask wallet and login.',
             ),
             const SizedBox(height: 24),
             // Connection status
