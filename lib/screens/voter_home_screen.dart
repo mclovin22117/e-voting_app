@@ -17,7 +17,7 @@ class VoterHomeScreen extends StatefulWidget {
     required this.authController,
   });
 
-  static const routeName = '/voter';
+  static const routeName = '/home';
 
   final BlockchainService blockchainService;
   final AuthController authController;
@@ -251,7 +251,7 @@ class _VoterHomeScreenState extends State<VoterHomeScreen> {
   Widget build(BuildContext context) {
     if (!widget.authController.canAccessVoter()) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Voter Dashboard')),
+        appBar: AppBar(title: const Text('Home')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -278,7 +278,7 @@ class _VoterHomeScreenState extends State<VoterHomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Voter Dashboard'),
+        title: const Text('Home'),
         actions: [
           IconButton(
             tooltip: 'Disconnect wallet',
@@ -299,6 +299,7 @@ class _VoterHomeScreenState extends State<VoterHomeScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            _buildCurrentVoteOpeningsCard(),
             if (_networkStatus != null && !_networkStatus!.isMatch)
               Container(
                 width: double.infinity,
@@ -420,6 +421,50 @@ class _VoterHomeScreenState extends State<VoterHomeScreen> {
           Text(periodText),
           const SizedBox(height: 6),
           Text(_voteBlockReason ?? 'You are eligible to vote now.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentVoteOpeningsCard() {
+    final period = _votingPeriod;
+    final status = _votingStatus;
+
+    String description;
+
+    if (_isPaused) {
+      description = 'Voting is currently paused by admin.';
+    } else if (period == null || status == _VotingStatus.notSet) {
+      description = 'No voting window is open right now.';
+    } else if (status == _VotingStatus.upcoming) {
+      description =
+          'Upcoming: opens at ${period.startDateTime} and closes at ${period.endDateTime}.';
+    } else if (status == _VotingStatus.active) {
+      description =
+          'Open now until ${period.endDateTime}. Cast your vote before the window closes.';
+    } else {
+      description =
+          'Latest voting window ended at ${period.endDateTime}. Wait for the next announcement.';
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.indigo.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.indigo.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Current Vote Openings',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Text(description),
         ],
       ),
     );

@@ -177,7 +177,7 @@ class AuthScreen extends StatelessWidget {
                   }
                 },
                 icon: const Icon(Icons.how_to_vote),
-                label: const Text('Go to Voter Dashboard'),
+                label: const Text('Go to Home'),
               ),
               const SizedBox(height: 12),
               if (authController.canAccessAdmin())
